@@ -1,6 +1,6 @@
 ;; Save-visited-files.el - save opened files across sessions
 
-;; Copyright (C) 2009 Nathaniel Flath <nflath@email.com>
+;; Copyright (C) 2009 Nathaniel Flath <nflath@gmail.com>
 ;; Version: 1.2
 ;;
 ;; Commentary

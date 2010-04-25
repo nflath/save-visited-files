@@ -60,20 +60,21 @@
 (defun save-visited-files-save (&optional location)
   "Save the list of currently visited files"
   (interactive)
-  (save-window-excursion
-    (setq location (or location save-visited-files-location))
-    (if (not (file-writable-p location))
-        (message "Save Visited Files: cannot write to %s" location)
-      (switch-to-buffer "*Save Visited*")
-      (ignore-errors
-        (erase-buffer)
-        (mapcar '(lambda (x) (insert x "\n"))
-                (remove-if '(lambda (x)
-                              (or (string-equal location x)
-                                  (eq nil x))) (mapcar 'buffer-file-name (buffer-list))))
-        (with-temp-message ""
-          (write-file location nil)))
-      (kill-buffer (get-buffer "*Save Visited*")))))
+  (save-excursion
+    (save-window-excursion
+      (setq location (or location save-visited-files-location))
+      (if (not (file-writable-p location))
+          (message "Save Visited Files: cannot write to %s" location)
+        (switch-to-buffer "*Save Visited*")
+        (ignore-errors
+          (erase-buffer)
+          (mapcar '(lambda (x) (insert x "\n"))
+                  (remove-if '(lambda (x)
+                                (or (string-equal location x)
+                                    (eq nil x))) (mapcar 'buffer-file-name (buffer-list))))
+          (with-temp-message ""
+            (write-file location nil)))
+        (kill-buffer (get-buffer "*Save Visited*"))))))
 
 (defun save-visited-files-restore (&optional location)
   "Restore all files that were saved by save-visited-files-save."

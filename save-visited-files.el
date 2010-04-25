@@ -49,7 +49,7 @@
   :type 'file
   :group 'save-visited-files)
 
-(defcustom save-visited-files-auto-restore nil
+(defcustom save-visited-files-auto-restore t
   "If t, restore visited files the first time save-visited-files-mode is activated"
   :type 'boolean
   :group 'save-visited-files)
@@ -62,7 +62,6 @@
   (interactive)
   (save-window-excursion
     (setq location (or location save-visited-files-location))
-
     (if (not (file-writable-p location))
         (message "Save Visited Files: cannot write to %s" location)
       (switch-to-buffer "*Save Visited*")

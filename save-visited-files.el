@@ -90,10 +90,12 @@
         (switch-to-buffer "*Save Visited*")
         (ignore-errors
           (erase-buffer)
-          (mapcar '(lambda (x) (insert x "\n"))
+          (mapcar '(lambda (x) (if x (insert x "\n")))
                   (remove-if '(lambda (x)
-                                (or (string-equal location x)
-                                    (eq nil x))) (mapcar 'buffer-file-name (buffer-list))))
+                                (if x (or (string-equal location x)
+                                          (not (file-exists-p x))
+                                          (eq nil x))))
+                             (mapcar 'buffer-file-name (buffer-list))))
           (with-temp-message ""
             (write-file location nil)))
         (kill-buffer (get-buffer "*Save Visited*"))))))

@@ -1,4 +1,4 @@
-;;; Save-visited-files.el - save opened files across sessions
+;;; save-visited-files.el --- save opened files across sessions
 
 ;; Copyright (C) 2009 Nathaniel Flath <nflath@gmail.com>
 
@@ -157,4 +157,5 @@ optionally open all files from such a list at startup."
   (setq save-visited-files-mode nil))
 
 (provide 'save-visited-files)
+
 ;;; save-visited-files.el ends here

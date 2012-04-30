@@ -105,7 +105,8 @@
     (insert-file-contents (or location save-visited-files-location))
     (ignore-errors
       (beginning-of-buffer)
-      (while (not (eq (point-max) (line-end-position)))
+      (dotimes-with-progress-reporter (line (count-lines (point-min) (point-max)))
+          "Restoring previously visited files"
         (find-file-noselect
          (buffer-substring-no-properties (line-beginning-position)
                                          (line-end-position))

@@ -81,45 +81,38 @@
 ;;;###autoload
 (defun save-visited-files-save (&optional location)
   "Save the list of currently visited files"
-  (interactive)
-  (save-excursion
-    (save-window-excursion
-      (setq location (or location save-visited-files-location))
-      (if (not (file-writable-p location))
-          (message "Save Visited Files: cannot write to %s" location)
-        (switch-to-buffer "*Save Visited*")
-        (ignore-errors
-          (erase-buffer)
-          (mapcar '(lambda (x) (if x (insert x "\n")))
-                  (remove-if '(lambda (x)
-                                (if x (or (string-equal location x)
-                                          (not (file-exists-p x))
-                                          (eq nil x))))
-                             (mapcar 'buffer-file-name (buffer-list))))
-          (with-temp-message ""
-            (write-file location nil)))
-        (kill-buffer (get-buffer "*Save Visited*"))))))
+  (interactive (list (read-file-name
+                      "Save visited files to: "
+                      (file-name-directory save-visited-files-location)
+                      (file-name-nondirectory save-visited-files-location))))
+  (setq location (or location save-visited-files-location))
+  (with-temp-file location
+    (ignore-errors
+      (erase-buffer)
+      (mapcar '(lambda (x) (insert x "\n"))
+              (remove-if '(lambda (x) (or (string-equal location x) (eq nil x)))
+                         (mapcar 'buffer-file-name (buffer-list))))))
+  nil)
 
 ;;;###autoload
 (defun save-visited-files-restore (&optional location)
   "Restore all files that were saved by save-visited-files-save."
-  (interactive)
-  (save-window-excursion
-    (setq location (or location save-visited-files-location))
-    (find-file location)
+  (interactive (list (read-file-name
+                      "Restore visited files from: "
+                      (file-name-directory save-visited-files-location)
+                      (file-name-nondirectory save-visited-files-location))))
+  (with-temp-buffer
+    (insert-file-contents (or location save-visited-files-location))
     (ignore-errors
-      (save-window-excursion
-        (beginning-of-buffer)
-        (while (not (eq (point) (point-max)))
-          (let ((point (point)))
-            (end-of-line)
-            (ignore-errors
-              (save-window-excursion
-                (find-file (buffer-substring point (point)))))
-            (next-line)
-            (beginning-of-line)))))
-    (kill-buffer (current-buffer))
-    (setq save-visited-files-already-restored t)))
+      (beginning-of-buffer)
+      (dotimes-with-progress-reporter (line (count-lines (point-min) (point-max)))
+          "Restoring previously visited files"
+        (find-file-noselect
+         (buffer-substring-no-properties (line-beginning-position)
+                                         (line-end-position))
+         'nowarn nil nil)
+        (forward-line))))
+  (setq save-visited-files-already-restored t))
 
 ;;;###autoload
 (define-minor-mode save-visited-files-mode
@@ -159,3 +152,4 @@ optionally open all files from such a list at startup."
 (provide 'save-visited-files)
 
 ;;; save-visited-files.el ends here
+

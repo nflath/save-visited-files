@@ -4,7 +4,7 @@
 
 ;; Author: Nathaniel Flath <nflath@gmail.com>
 ;; URL: http://github.com/nflath/save-visited-files
-;; Version: 1.2
+;; Version: 1.3
 
 ;;; Commentary:
 

@@ -107,11 +107,11 @@
       (beginning-of-buffer)
       (dotimes-with-progress-reporter (line (count-lines (point-min) (point-max)))
           "Restoring previously visited files"
-        (find-file-noselect
-         (buffer-substring-no-properties (line-beginning-position)
-                                         (line-end-position))
-         'nowarn nil nil)
-        (forward-line))))
+        (let ((filename (buffer-substring-no-properties (line-beginning-position)
+                                                        (line-end-position))))
+          (when (file-exists-p filename)
+            (find-file-noselect filename 'nowarn nil nil))
+          (forward-line)))))
   (setq save-visited-files-already-restored t))
 
 ;;;###autoload

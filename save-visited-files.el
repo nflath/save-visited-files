@@ -65,6 +65,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 (defcustom save-visited-files-location "~/.emacs.d/emacs-visited-files"
   "Location of the file that contains the list of previously visited files"
   :type 'file
@@ -89,9 +91,9 @@
   (with-temp-file location
     (ignore-errors
       (erase-buffer)
-      (mapcar '(lambda (x) (insert x "\n"))
-              (remove-if '(lambda (x) (or (string-equal location x) (eq nil x)))
-                         (mapcar 'buffer-file-name (buffer-list))))))
+      (mapc (lambda (x) (insert x "\n"))
+            (cl-remove-if (lambda (x) (or (string-equal location x) (eq nil x)))
+                          (mapc 'buffer-file-name (buffer-list))))))
   nil)
 
 ;;;###autoload
@@ -104,7 +106,7 @@
   (with-temp-buffer
     (insert-file-contents (or location save-visited-files-location))
     (ignore-errors
-      (beginning-of-buffer)
+      (goto-char (point-min))
       (dotimes-with-progress-reporter (line (count-lines (point-min) (point-max)))
           "Restoring previously visited files"
         (let ((filename (buffer-substring-no-properties (line-beginning-position)

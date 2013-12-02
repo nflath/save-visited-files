@@ -93,7 +93,7 @@
       (erase-buffer)
       (mapc (lambda (x) (insert x "\n"))
             (cl-remove-if (lambda (x) (or (string-equal location x) (eq nil x)))
-                          (mapc 'buffer-file-name (buffer-list))))))
+                          (mapcar 'buffer-file-name (buffer-list))))))
   nil)
 
 ;;;###autoload

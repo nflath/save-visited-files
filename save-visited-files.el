@@ -66,6 +66,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'tramp)
 
 (defcustom save-visited-files-location "~/.emacs.d/emacs-visited-files"
   "Location of the file that contains the list of previously visited files"
@@ -74,6 +75,11 @@
 
 (defcustom save-visited-files-auto-restore t
   "If t, restore visited files the first time save-visited-files-mode is activated"
+  :type 'boolean
+  :group 'save-visited-files)
+
+(defcustom save-visited-files-ignore-tramp-files nil
+  "If t, ignore tramp files when saving the list of files."
   :type 'boolean
   :group 'save-visited-files)
 
@@ -92,7 +98,10 @@
     (ignore-errors
       (erase-buffer)
       (mapc (lambda (x) (insert x "\n"))
-            (cl-remove-if (lambda (x) (or (string-equal location x) (eq nil x)))
+            (cl-remove-if (lambda (x) (or (string-equal location x)
+                                    (null x)
+                                    (and save-visited-files-ignore-tramp-files
+                                       (tramp-tramp-file-p x))))
                           (mapcar 'buffer-file-name (buffer-list))))))
   nil)
 

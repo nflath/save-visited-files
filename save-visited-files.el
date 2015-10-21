@@ -29,6 +29,9 @@
 ;; off the saving of files, you need to run (turn-off-save-visited-files-mode)
 
 ;; Changelog:
+;; 1.3
+;;  * Allow saving of dired directories.
+;;  * Add save-visited-files-ignore-directories configuration variable.
 ;; 1.2
 ;;  * Changed default value of save-visited-files-location to ~/.emacs.d/emacs-visisted-files
 ;;  * Improvements/rewriting by Jonathan Kotta
@@ -79,12 +82,36 @@
   :group 'save-visited-files)
 
 (defcustom save-visited-files-ignore-tramp-files nil
-  "If t, ignore tramp files when saving the list of files."
+  "If non-nil, ignore tramp files when saving the list of files."
+  :type 'boolean
+  :group 'save-visited-files)
+
+(defcustom save-visited-files-ignore-directories t
+  "If non-nil, ignore dired buffers when saving the list of files."
   :type 'boolean
   :group 'save-visited-files)
 
 (defvar save-visited-files-already-restored nil
   "If t, then files have already been restored")
+
+(defun save-visited-files-list ()
+  "Return a list of candidate files to remember."
+  (cl-remove-if-not
+   'stringp
+   (append
+    (mapcar (lambda (x) (with-current-buffer x dired-directory)) (buffer-list))
+    (mapcar 'buffer-file-name (buffer-list)))))
+
+(defun save-visited-files-ignore-p (file)
+  "Returns non-nil if a file should not be in the list of files to save."
+  (or (null file)
+     (not (stringp file))
+     (string-equal file save-visited-files-location)
+     (not (file-exists-p file))
+     (and save-visited-files-ignore-directories
+        (file-directory-p file))
+     (and save-visited-files-ignore-tramp-files
+        (tramp-tramp-file-p file))))
 
 ;;;###autoload
 (defun save-visited-files-save (&optional location)
@@ -93,17 +120,14 @@
                       "Save visited files to: "
                       (file-name-directory save-visited-files-location)
                       (file-name-nondirectory save-visited-files-location))))
-  (setq location (or location save-visited-files-location))
-  (with-temp-file location
-    (ignore-errors
-      (erase-buffer)
-      (mapc (lambda (x) (insert x "\n"))
-            (cl-remove-if (lambda (x) (or (string-equal location x)
-                                    (null x)
-                                    (and save-visited-files-ignore-tramp-files
-                                       (tramp-tramp-file-p x))))
-                          (mapcar 'buffer-file-name (buffer-list))))))
-  nil)
+  (let ((save-visited-files-location (or location save-visited-files-location)))
+    (with-temp-file save-visited-files-location
+      (ignore-errors
+        (erase-buffer)
+        (mapc (lambda (x) (insert x "\n"))
+              (cl-remove-if 'save-visited-files-ignore-p
+                            (save-visited-files-list)))))
+    nil))
 
 ;;;###autoload
 (defun save-visited-files-restore (&optional location)

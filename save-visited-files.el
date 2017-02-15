@@ -120,7 +120,10 @@
                       "Save visited files to: "
                       (file-name-directory save-visited-files-location)
                       (file-name-nondirectory save-visited-files-location))))
-  (let ((save-visited-files-location (or location save-visited-files-location)))
+  (let ((save-visited-files-location (or location save-visited-files-location))
+        ;; save these anyway, -restore will ignore them
+        (save-visited-files-ignore-directories nil)
+        (save-visited-files-ignore-tramp-files nil))
     (with-temp-file save-visited-files-location
       (ignore-errors
         (erase-buffer)
@@ -144,7 +147,7 @@
           "Restoring previously visited files"
         (let ((filename (buffer-substring-no-properties (line-beginning-position)
                                                         (line-end-position))))
-          (when (file-exists-p filename)
+          (unless (save-visited-files-ignore-p filename)
             (find-file-noselect filename 'nowarn nil nil))
           (forward-line)))))
   (setq save-visited-files-already-restored t))
@@ -187,4 +190,3 @@ optionally open all files from such a list at startup."
 (provide 'save-visited-files)
 
 ;;; save-visited-files.el ends here
-

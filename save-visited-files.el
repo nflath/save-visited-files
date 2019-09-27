@@ -30,7 +30,7 @@
 
 ;; Changelog:
 ;; 1.5
-;;  * Fix bug where save-visited-files-restore would error if save-visited-files-location 
+;;  * Fix bug where save-visited-files-restore would error if save-visited-files-location
 ;;    is nonexistent.
 ;; 1.4
 ;;  * Add to after-init-hook if run during initialization instead of restoring
@@ -113,7 +113,7 @@
   (or (null file)
      (not (stringp file))
      (string-equal file save-visited-files-location)
-     (not (file-exists-p file))
+     (and (not (tramp-tramp-file-p file)) (not (file-exists-p file)))
      (and save-visited-files-ignore-directories
         (file-directory-p file))
      (and save-visited-files-ignore-tramp-files

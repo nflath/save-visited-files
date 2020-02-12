@@ -4,7 +4,7 @@
 
 ;; Author: Nathaniel Flath <nflath@gmail.com>
 ;; URL: http://github.com/nflath/save-visited-files
-;; Version: 1.5
+;; Version: 1.6
 
 ;;; Commentary:
 
@@ -29,9 +29,12 @@
 ;; off the saving of files, you need to run (turn-off-save-visited-files-mode)
 
 ;; Changelog:
-;; 1.5
+;; 1.6
 ;;  * Fix bug to add hooks after loading files, otherwise it's
 ;;    possible for your save file to be overwritten first.
+;; 1.5
+;;  * Fix bug where save-visited-files-restore would error if save-visited-files-location
+;;    is nonexistent.
 ;; 1.4
 ;;  * Add to after-init-hook if run during initialization instead of restoring
 ;;  * immediately.
@@ -113,7 +116,7 @@
   (or (null file)
      (not (stringp file))
      (string-equal file save-visited-files-location)
-     (not (file-exists-p file))
+     (and (not (tramp-tramp-file-p file)) (not (file-exists-p file)))
      (and save-visited-files-ignore-directories
         (file-directory-p file))
      (and save-visited-files-ignore-tramp-files
@@ -146,8 +149,8 @@
                       (file-name-directory save-visited-files-location)
                       (file-name-nondirectory save-visited-files-location))))
   (with-temp-buffer
-    (insert-file-contents (or location save-visited-files-location))
     (ignore-errors
+     (insert-file-contents (or location save-visited-files-location))
       (goto-char (point-min))
       (dotimes-with-progress-reporter (line (count-lines (point-min) (point-max)))
           "Restoring previously visited files"
